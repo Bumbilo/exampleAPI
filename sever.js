@@ -3,8 +3,7 @@ const bodyParser = require('body-parser');
 var MongoClient = require('mongodb').MongoClient;
 var ObjectID = require('mongodb').ObjectID;
 const app = express();
-
-var db;
+const db = require('./bd');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -56,37 +55,34 @@ app.post('/artist', (req, res) => {
 });
 
 app.put('/artist/:id', (req, res) => {
-    console.log(req.params)
-
     db.collection('artist').updateOne(
-
         { _id: ObjectID(req.params.id) },
-        { name: req.body.name },
-        function (err, result) {
+        { $set: {"name": req.body.name }},
+        (err, result) => {
             if (err) {
                 console.log(err);
                 return res.sendStatus(500);
             }
-
             res.sendStatus(200);
         }
     );
-
-    res.sendStatus(200);
 });
 
 app.delete('/artist/:id', (req, res) => {
-    artistes = artistes.filter(artist => artist.id !== Number(req.body.id));
-    return res.sendStatus(200);
+    db.collection('artist').deleteOne({_id: ObjectID(req.params.id)}, (err, result) => {
+        if (err) {
+            console.log(err);
+            return res.sendStatus(500);
+        }
+           res.sendStatus(200);
+    })
 });
 
-MongoClient.connect('mongodb://localhost:27017/myapi', (err, database) => {
+db.connect('mongodb://localhost:27017/myapi', (err) => {
 
     if (err) {
         console.log(err);
     }
-
-    db = database.db('myTestBD');
 
     app.listen(3000, () => {
         console.log('API is Started !!!')
